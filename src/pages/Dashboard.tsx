@@ -67,10 +67,21 @@ const Dashboard = () => {
     return expenseDate >= monthStart && expenseDate <= monthEnd;
   });
 
-  const totalMonthlyAmount = monthlyExpenses.reduce(
+  // Separate shared and personal expenses
+  const sharedExpenses = monthlyExpenses.filter(expense => expense.is_shared);
+  const personalExpenses = monthlyExpenses.filter(expense => !expense.is_shared);
+
+  const totalSharedAmount = sharedExpenses.reduce(
     (sum, expense) => sum + expense.amount,
     0
   );
+
+  const totalPersonalAmount = personalExpenses.reduce(
+    (sum, expense) => sum + expense.amount,
+    0
+  );
+
+  const totalMonthlyAmount = totalSharedAmount + totalPersonalAmount;
 
   const getCategoryName = (categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
@@ -118,7 +129,7 @@ const Dashboard = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total do Mês</CardTitle>
@@ -132,6 +143,49 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Despesas Conjuntas</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{formatCurrency(totalSharedAmount)}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                <div>Julia: {formatCurrency(totalSharedAmount * (household?.julia_percentage || 0) / 100)}</div>
+                <div>Bruno: {formatCurrency(totalSharedAmount * (household?.bruno_percentage || 0) / 100)}</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Despesas Pessoais</CardTitle>
+              <TrendingUp className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">{formatCurrency(totalPersonalAmount)}</div>
+              <p className="text-xs text-muted-foreground">
+                não divididas
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Despesas do Mês</CardTitle>
+              <List className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{monthlyExpenses.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {sharedExpenses.length} conjuntas, {personalExpenses.length} pessoais
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Expense Breakdown */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Divisão Atual</CardTitle>
@@ -148,19 +202,6 @@ const Dashboard = () => {
                   <span className="font-medium">{household?.bruno_percentage}%</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Despesas do Mês</CardTitle>
-              <List className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{monthlyExpenses.length}</div>
-              <p className="text-xs text-muted-foreground">
-                registradas este mês
-              </p>
             </CardContent>
           </Card>
         </div>
@@ -191,6 +232,7 @@ const Dashboard = () => {
                     <TableHead>Data</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Categoria</TableHead>
+                    <TableHead>Tipo</TableHead>
                     <TableHead>Valor</TableHead>
                     <TableHead>Pago por</TableHead>
                   </TableRow>
@@ -205,6 +247,11 @@ const Dashboard = () => {
                       <TableCell>
                         <Badge variant="outline">
                           {getCategoryName(expense.category_id)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={expense.is_shared ? "default" : "secondary"}>
+                          {expense.is_shared ? "Conjunta" : "Pessoal"}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium">

@@ -19,6 +19,7 @@ export interface Expense {
   amount: number;
   paid_by: string;
   expense_date: string;
+  is_shared: boolean;
   created_at: string;
   updated_at: string;
   categories?: {
@@ -163,7 +164,8 @@ export const useExpenses = () => {
     categoryId: string,
     description: string,
     amount: number,
-    expenseDate: string
+    expenseDate: string,
+    isShared: boolean = true
   ) => {
     if (!user || !household) return { error: "Not authenticated or no household" };
 
@@ -177,6 +179,7 @@ export const useExpenses = () => {
           amount,
           paid_by: user.id,
           expense_date: expenseDate,
+          is_shared: isShared,
         },
       ])
       .select(`

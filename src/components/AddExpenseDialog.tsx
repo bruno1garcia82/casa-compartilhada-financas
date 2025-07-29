@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
@@ -24,6 +25,7 @@ const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [date, setDate] = useState<Date>(new Date());
+  const [isShared, setIsShared] = useState<string>("shared");
   const [loading, setLoading] = useState(false);
 
   const { categories } = useCategories();
@@ -45,7 +47,8 @@ const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
       categoryId,
       description,
       parseFloat(amount),
-      format(date, "yyyy-MM-dd")
+      format(date, "yyyy-MM-dd"),
+      isShared === "shared"
     );
 
     if (error) {
@@ -65,6 +68,7 @@ const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
       setAmount("");
       setCategoryId("");
       setDate(new Date());
+      setIsShared("shared");
       onOpenChange(false);
     }
     setLoading(false);
@@ -159,6 +163,28 @@ const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
                 />
               </PopoverContent>
             </Popover>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Tipo de Despesa</Label>
+            <RadioGroup 
+              value={isShared} 
+              onValueChange={setIsShared}
+              className="flex flex-col space-y-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="shared" id="shared" />
+                <Label htmlFor="shared" className="cursor-pointer">
+                  Conjunta (dividida conforme porcentagens)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="personal" id="personal" />
+                <Label htmlFor="personal" className="cursor-pointer">
+                  Pessoal (não dividida)
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
           <DialogFooter>
