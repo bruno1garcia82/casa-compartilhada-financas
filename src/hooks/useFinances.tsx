@@ -37,20 +37,10 @@ export const useHousehold = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchHousehold = async () => {
-    if (!user) return;
-    
-    setLoading(true);
-    
-    // First check if user is member of any household
-    const { data: memberData, error: memberError } = await supabase
-      .from("household_members")
-      .select("household_id")
-      .eq("user_id", user.id)
-      .single();
-
-    if (memberError || !memberData) {
-      // Create a default household for the user
+    const createDefaultHousehold = async (userId: string) => {
+    try {
+      console.log("Criando household padrão para usuário:", userId);
+      
       const { data: newHousehold, error: householdError } = await supabase
         .from("households")
         .insert([
@@ -63,34 +53,98 @@ export const useHousehold = () => {
         .select()
         .single();
 
-      if (!householdError && newHousehold) {
-        // Add user as member
-        await supabase
-          .from("household_members")
-          .insert([
-            {
-              household_id: newHousehold.id,
-              user_id: user.id,
-              role: "admin",
-            },
-          ]);
-        
-        setHousehold(newHousehold);
+      if (householdError) {
+        console.error("Erro ao criar household:", householdError);
+        throw householdError;
       }
-    } else {
-      // Fetch existing household
+
+      if (!newHousehold) {
+        throw new Error("Household não foi criado");
+      }
+
+      console.log("Novo household criado:", newHousehold);
+
+      // Adiciona usuário como membro
+      const { error: memberError } = await supabase
+        .from("household_members")
+        .insert([
+          {
+            household_id: newHousehold.id,
+            user_id: userId,
+            role: "admin",
+          },
+        ]);
+
+      if (memberError) {
+        console.error("Erro ao adicionar membro:", memberError);
+        throw memberError;
+      }
+
+      return newHousehold;
+    } catch (error) {
+      console.error("Falha completa na criação do household:", error);
+      setError("Falha ao criar household padrão");
+      return null;
+    }
+  };
+
+  const fetchHousehold = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log("Buscando household para usuário:", user.id);
+      
+      // 1. Verifica se usuário é membro de algum household
+      const { data: memberData, error: memberError } = await supabase
+        .from("household_members")
+        .select("household_id")
+        .eq("user_id", user.id)
+        .maybeSingle(); // Usando maybeSingle para evitar erros quando não encontra registro
+
+      if (memberError) {
+        console.error("Erro ao buscar household_members:", memberError);
+        throw memberError;
+      }
+
+      // 2. Se não for membro, cria um novo household
+      if (!memberData) {
+        console.log("Usuário não tem household, criando um novo...");
+        const newHousehold = await createDefaultHousehold(user.id);
+        if (newHousehold) {
+          setHousehold(newHousehold);
+        }
+        return;
+      }
+
+      // 3. Se for membro, busca os dados do household
+      console.log("Usuário tem household, buscando dados...");
       const { data: householdData, error: householdError } = await supabase
         .from("households")
         .select("*")
         .eq("id", memberData.household_id)
         .single();
 
-      if (!householdError && householdData) {
+      if (householdError) {
+        console.error("Erro ao buscar household:", householdError);
+        throw householdError;
+      }
+
+      if (householdData) {
+        console.log("Household encontrado:", householdData);
         setHousehold(householdData);
       }
+    } catch (error) {
+      console.error("Erro no fetchHousehold:", error);
+      setError("Erro ao carregar household");
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const updatePercentages = async (juliaPercentage: number, brunoPercentage: number) => {
