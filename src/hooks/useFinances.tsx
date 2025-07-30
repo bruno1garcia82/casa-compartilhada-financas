@@ -180,11 +180,10 @@ export const useHousehold = () => {
   };
 };
 
-export const useExpenses = () => {
+export const useExpenses = (household: Household | null = null) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const { household } = useHousehold();
 
   const fetchExpenses = async () => {
     if (!user || !household) return;
@@ -222,7 +221,11 @@ export const useExpenses = () => {
     expenseDate: string,
     isShared: boolean = true
   ) => {
-    if (!user || !household) return { error: "Not authenticated or no household" };
+    console.log("addExpense chamado", { user: !!user, household: !!household });
+    if (!user || !household) {
+      console.error("User ou household não encontrado", { user: !!user, household: !!household });
+      return { error: "Not authenticated or no household" };
+    }
 
     const { data, error } = await supabase
       .from("expenses")

@@ -18,7 +18,7 @@ const Dashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { household } = useHousehold();
-  const { expenses } = useExpenses();
+  const { expenses } = useExpenses(household);
   const { categories } = useCategories();
   const [showAddExpense, setShowAddExpense] = useState(false);
 
