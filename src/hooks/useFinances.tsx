@@ -35,6 +35,7 @@ export interface Expense {
 export const useHousehold = () => {
   const [household, setHousehold] = useState<Household | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
     const createDefaultHousehold = async (userId: string) => {
