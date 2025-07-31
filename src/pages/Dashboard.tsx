@@ -205,6 +205,8 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
+
+          <BalanceCard />
         </div>
 
         {/* Recent Expenses */}
