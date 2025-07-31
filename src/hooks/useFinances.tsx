@@ -169,7 +169,13 @@ export const useHousehold = () => {
   };
 
   useEffect(() => {
-    fetchHousehold();
+    if (user) {
+      fetchHousehold();
+    } else {
+      // Clear household when user changes
+      setHousehold(null);
+      setLoading(false);
+    }
   }, [user]);
 
   return {
@@ -326,8 +332,12 @@ export const useExpenses = (household: Household | null = null) => {
   };
 
   useEffect(() => {
-    if (household) {
+    if (user && household) {
       fetchExpenses();
+    } else {
+      // Clear expenses when user changes or household is not available
+      setExpenses([]);
+      setLoading(false);
     }
   }, [user, household]);
 
