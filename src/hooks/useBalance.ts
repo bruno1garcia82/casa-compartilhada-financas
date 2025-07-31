@@ -25,9 +25,10 @@ export const useBalance = () => {
       });
       
       if (expense.is_shared) {
-        if (expense.profiles?.name === 'Bruno') {
+        const payerName = expense.profiles?.name || '';
+        if (payerName.includes('Bruno')) {
           brunoTotal += expense.amount;
-        } else if (expense.profiles?.name === 'Julia') {
+        } else if (payerName.includes('Julia')) {
           juliaTotal += expense.amount;
         }
       }
