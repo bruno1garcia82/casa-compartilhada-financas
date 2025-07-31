@@ -34,16 +34,14 @@ const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description || !amount || !categoryId) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive",
-      });
-      return;
-    }
+  
+    // ADICIONE AQUI ▼
+    console.log('Dados atuais:', {
+      user: user?.id,
+      household: household?.id 
+    });
 
-    setLoading(true);
+    // Chamada original para addExpense
     const { error } = await addExpense(
       categoryId,
       description,
