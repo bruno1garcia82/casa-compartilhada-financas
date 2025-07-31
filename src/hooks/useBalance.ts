@@ -6,7 +6,10 @@ export const useBalance = () => {
   const { expenses } = useExpenses(household);
 
   const balance = useMemo(() => {
+    console.log("useBalance - calculando saldo:", { household, expenses: expenses.length });
+    
     if (!household || !expenses.length) {
+      console.log("useBalance - sem household ou expenses");
       return { brunoOwesJulia: 0, juliaOwesBruno: 0 };
     }
 
@@ -14,6 +17,13 @@ export const useBalance = () => {
     let juliaTotal = 0;
 
     expenses.forEach((expense) => {
+      console.log("Processando despesa:", { 
+        description: expense.description, 
+        amount: expense.amount, 
+        is_shared: expense.is_shared, 
+        paid_by_name: expense.profiles?.name 
+      });
+      
       if (expense.is_shared) {
         if (expense.profiles?.name === 'Bruno') {
           brunoTotal += expense.amount;
@@ -29,6 +39,17 @@ export const useBalance = () => {
 
     const brunoOwesJulia = Math.max(0, brunoShouldPay - brunoTotal);
     const juliaOwesBruno = Math.max(0, juliaShouldPay - juliaTotal);
+
+    console.log("useBalance - resultado:", {
+      brunoTotal,
+      juliaTotal,
+      totalSharedExpenses,
+      brunoShouldPay,
+      juliaShouldPay,
+      brunoOwesJulia,
+      juliaOwesBruno,
+      percentages: { bruno: household.bruno_percentage, julia: household.julia_percentage }
+    });
 
     return { brunoOwesJulia, juliaOwesBruno };
   }, [household, expenses]);
