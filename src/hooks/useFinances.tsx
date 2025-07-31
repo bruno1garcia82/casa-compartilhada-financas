@@ -243,45 +243,46 @@ export const useExpenses = (household: Household | null = null) => {
     expenseDate: string,
     isShared: boolean = true
   ) => {
-    console.log("addExpense chamado", { user: !!user, household: !!household });
-    if (!user || !household) {
-      console.error("User ou household não encontrado", { user: !!user, household: !!household });
-      return { error: "Not authenticated or no household" };
+    // Validação EXTRA - Adicione esta parte
+    if (!user?.id || !household?.id) {
+      const errorMsg = !user?.id ? "Usuário não autenticado" : "Domicílio não carregado";
+      console.error(errorMsg, { 
+        user: user?.id, 
+        household: household?.id 
+      });
+      return { error: errorMsg };
     }
 
-    const { data, error } = await supabase
-      .from("expenses")
-      .insert([
-        {
+    try {
+    // Modifique a chamada do Supabase para esta versão
+      const { data, error } = await supabase
+        .from("expenses")
+        .insert({
           household_id: household.id,
           category_id: categoryId,
           description,
-          amount,
+          amount: Number(amount.toFixed(2)), // Garante 2 decimais
           paid_by: user.id,
           expense_date: expenseDate,
           is_shared: isShared,
-        },
-      ])
-      .select(`
-        *,
-        categories (
-          id,
-          name,
-          parent_category
-        ),
-        profiles!expenses_paid_by_fkey (
-          name
-        )
-      `)
-      .single();
+        })
+        .select(`
+          *,
+          categories (id, name),
+          profiles (name)
+        `)
+        .single();
 
-    if (!error && data) {
-      setExpenses((prev) => [data as any, ...prev]);
-      // Trigger a refetch to ensure balance updates
-      setTimeout(() => fetchExpenses(), 100);
+      if (error) throw error;
+    
+      console.log("Despesa cadastrada com sucesso:", data);
+      setExpenses((prev) => [data, ...prev]);
+      return { data };
+
+    } catch (error) {
+      console.error("Erro detalhado ao cadastrar:", error);
+      return { error: error.message };
     }
-
-    return { data, error };
   };
 
   const updateExpense = async (
