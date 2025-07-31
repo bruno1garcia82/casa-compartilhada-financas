@@ -255,6 +255,8 @@ export const useExpenses = (household: Household | null = null) => {
 
     if (!error && data) {
       setExpenses((prev) => [data as any, ...prev]);
+      // Trigger a refetch to ensure balance updates
+      setTimeout(() => fetchExpenses(), 100);
     }
 
     return { data, error };
@@ -265,7 +267,8 @@ export const useExpenses = (household: Household | null = null) => {
     categoryId: string,
     description: string,
     amount: number,
-    expenseDate: string
+    expenseDate: string,
+    isShared: boolean = true
   ) => {
     if (!user) return { error: "User not authenticated" };
 
@@ -276,6 +279,7 @@ export const useExpenses = (household: Household | null = null) => {
         description,
         amount,
         expense_date: expenseDate,
+        is_shared: isShared,
       })
       .eq("id", id)
       .eq("paid_by", user.id) // Users can only update their own expenses
@@ -296,6 +300,8 @@ export const useExpenses = (household: Household | null = null) => {
       setExpenses((prev) =>
         prev.map((expense) => (expense.id === id ? data as any : expense))
       );
+      // Trigger a refetch to ensure balance updates
+      setTimeout(() => fetchExpenses(), 100);
     }
 
     return { data, error };
@@ -312,6 +318,8 @@ export const useExpenses = (household: Household | null = null) => {
 
     if (!error) {
       setExpenses((prev) => prev.filter((expense) => expense.id !== id));
+      // Trigger a refetch to ensure balance updates
+      setTimeout(() => fetchExpenses(), 100);
     }
 
     return { error };

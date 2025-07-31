@@ -9,6 +9,7 @@ import { signOut } from "@/lib/auth";
 import { useHousehold, useExpenses } from "@/hooks/useFinances";
 import { useCategories } from "@/hooks/useCategories";
 import AddExpenseDialog from "@/components/AddExpenseDialog";
+import EditExpenseDialog from "@/components/EditExpenseDialog";
 import BalanceCard from "@/components/BalanceCard";
 import { toast } from "@/hooks/use-toast";
 import { format, startOfMonth, endOfMonth } from "date-fns";
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const { expenses } = useExpenses(household);
   const { categories } = useCategories();
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<any>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -214,7 +216,7 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle>Despesas Recentes</CardTitle>
             <CardDescription>
-              Últimas movimentações registradas no sistema
+              Últimas movimentações registradas no sistema. Clique em uma despesa para editá-la.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -242,7 +244,11 @@ const Dashboard = () => {
                 </TableHeader>
                 <TableBody>
                   {expenses.slice(0, 10).map((expense) => (
-                    <TableRow key={expense.id}>
+                    <TableRow 
+                      key={expense.id} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => setEditingExpense(expense)}
+                    >
                       <TableCell>
                         {format(new Date(expense.expense_date), "dd/MM/yyyy")}
                       </TableCell>
@@ -276,6 +282,14 @@ const Dashboard = () => {
         open={showAddExpense}
         onOpenChange={setShowAddExpense}
       />
+      
+      {editingExpense && (
+        <EditExpenseDialog
+          open={!!editingExpense}
+          onOpenChange={(open) => !open && setEditingExpense(null)}
+          expense={editingExpense}
+        />
+      )}
     </div>
   );
 };
