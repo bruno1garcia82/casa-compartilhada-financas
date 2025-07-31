@@ -9,6 +9,7 @@ import { signOut } from "@/lib/auth";
 import { useHousehold, useExpenses } from "@/hooks/useFinances";
 import { useCategories } from "@/hooks/useCategories";
 import AddExpenseDialog from "@/components/AddExpenseDialog";
+import BalanceCard from "@/components/BalanceCard";
 import { toast } from "@/hooks/use-toast";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
