@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { USERS } from '@/constants/users';  // Adicione esta linha
 
 export interface Household {
   id: string;
@@ -168,15 +169,22 @@ export const useHousehold = () => {
     return { data, error };
   };
 
-  useEffect(() => {
-    if (user) {
-      fetchHousehold();
-    } else {
-      // Clear household when user changes
-      setHousehold(null);
-      setLoading(false);
-    }
-  }, [user]);
+useEffect(() => {
+  if (user && household) {
+    // Configura listener do Supabase para atualizações em tempo real
+    const channel = supabase
+      .channel('expenses_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'expenses',
+        filter: `household_id=eq.${household.id}`
+      }, () => fetchExpenses())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel) };
+  }
+}, [user?.id, household?.id]);  // Recria listener quando usuário ou household mudar
 
   return {
     household,
@@ -191,9 +199,18 @@ export const useExpenses = (household: Household | null = null) => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
+    const getPaidByName = (userId: string) => {
+    if (userId === USERS.JULIA.id) return USERS.JULIA.name;
+    if (userId === USERS.BRUNO.id) return USERS.BRUNO.name;
+    return "Usuário";
+  };
+
   const fetchExpenses = async () => {
-    if (!user || !household) return;
-    
+    if (!user || !household) {
+      setExpenses([]);  // Limpa despesas ao trocar de usuário
+      return;
+    }
+  
     setLoading(true);
     const { data, error } = await supabase
       .from("expenses")
@@ -209,13 +226,12 @@ export const useExpenses = (household: Household | null = null) => {
         )
       `)
       .eq("household_id", household.id)
-      .order("expense_date", { ascending: false })
-      .order("created_at", { ascending: false });
+      .order("expense_date", { ascending: false });
 
     if (error) {
       console.error("Error fetching expenses:", error);
     } else {
-      setExpenses(data as any || []);
+      setExpenses(data || []);
     }
     setLoading(false);
   };
@@ -348,5 +364,6 @@ export const useExpenses = (household: Household | null = null) => {
     updateExpense,
     deleteExpense,
     refetch: fetchExpenses,
+    getPaidByName,
   };
 };
