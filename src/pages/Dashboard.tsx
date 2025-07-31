@@ -24,10 +24,14 @@ const Dashboard = () => {
   const { categories } = useCategories();
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [userKey, setUserKey] = useState('');
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
+    } else if (user) {
+      // Update user key to force component refresh
+      setUserKey(user.id);
     }
   }, [user, loading, navigate]);
 
@@ -208,7 +212,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <BalanceCard />
+          <BalanceCard key={userKey} />
         </div>
 
         {/* Recent Expenses */}
