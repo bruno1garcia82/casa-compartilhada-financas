@@ -170,7 +170,7 @@ export const useHousehold = () => {
   };
 
   useEffect(() => {
-    if (user && household) {
+    if (user) {
       fetchHousehold();
     } else {
       setHousehold(null);
