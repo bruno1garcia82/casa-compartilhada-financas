@@ -38,12 +38,14 @@ const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
     e.preventDefault();
     setLoading(true);
 
-    // Chamada original para addExpense
+    // Formar a data no fuso horário local para evitar problemas de timezone
+    const localDateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    
     const { error } = await addExpense(
       categoryId,
       description,
       parseFloat(amount),
-      format(date, "yyyy-MM-dd"),
+      localDateString,
       isShared === "shared"
     );
 
