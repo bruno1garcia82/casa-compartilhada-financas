@@ -41,9 +41,6 @@ const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
     // Formar a data no fuso horário local para evitar problemas de timezone
     const localDateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     
-    console.log("Data selecionada:", date);
-    console.log("Data formatada para envio:", localDateString);
-    
     const { error } = await addExpense(
       categoryId,
       description,

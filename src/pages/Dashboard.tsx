@@ -42,7 +42,7 @@ const Dashboard = () => {
     const monthEnd = endOfMonth(currentMonth);
     
     const monthlyExpenses = expenses.filter(expense => {
-      const expenseDate = new Date(expense.expense_date);
+      const expenseDate = new Date(expense.expense_date + 'T12:00:00');
       return expenseDate >= monthStart && expenseDate <= monthEnd;
     });
 
@@ -273,7 +273,7 @@ const Dashboard = () => {
                       onClick={() => setEditingExpense(expense)}
                     >
                       <TableCell>
-                        {format(new Date(expense.expense_date), "dd/MM/yyyy")}
+                        {format(new Date(expense.expense_date + 'T12:00:00'), "dd/MM/yyyy")}
                       </TableCell>
                       <TableCell>{expense.description}</TableCell>
                       <TableCell>
