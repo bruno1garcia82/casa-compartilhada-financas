@@ -68,7 +68,7 @@ const Dashboard = () => {
       totalPersonalAmount,
       totalMonthly: totalSharedAmount + totalPersonalAmount
     };
-  }, [expenses]);
+  }, [expenses, expenses.length]);
 
   const handleSignOut = async () => {
     try {

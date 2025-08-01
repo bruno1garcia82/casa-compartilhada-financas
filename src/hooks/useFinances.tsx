@@ -299,6 +299,8 @@ export const useExpenses = (household: Household | null = null) => {
       
       console.log("Despesa cadastrada com sucesso:", expenseWithProfile);
       setExpenses((prev) => [expenseWithProfile as any, ...prev]);
+      // Force refetch to ensure all calculations are updated
+      setTimeout(() => fetchExpenses(), 100);
       return { data: expenseWithProfile };
 
     } catch (error) {
