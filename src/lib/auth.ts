@@ -34,6 +34,21 @@ export const signIn = async (email: string, password: string) => {
 };
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut();
-  return { error };
+  try {
+    // Verificar se há uma sessão ativa antes de tentar logout
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      // Se não há sessão, já consideramos como logout bem-sucedido
+      return { error: null };
+    }
+    
+    const { error } = await supabase.auth.signOut();
+    return { error };
+  } catch (error: any) {
+    // Se houver qualquer erro, ainda consideramos como logout bem-sucedido
+    // pois o objetivo é limpar a sessão local
+    console.warn('Warning during logout:', error);
+    return { error: null };
+  }
 };
