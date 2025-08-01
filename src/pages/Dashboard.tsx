@@ -31,7 +31,7 @@ const Dashboard = () => {
       navigate("/auth");
     } else if (user) {
       // Update user key to force component refresh
-      setUserKey(user.id);
+      setUserKey(user.id + Date.now());
     }
   }, [user, loading, navigate]);
 
