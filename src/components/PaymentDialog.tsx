@@ -48,14 +48,16 @@ const PaymentDialog = ({ open, onOpenChange, toUserId, amount }: PaymentDialogPr
     setLoading(true);
 
     try {
-      const { error } = await supabase.rpc('insert_member_payment', {
-        p_household_id: household.id,
-        p_from_user_id: user.id,
-        p_to_user_id: toUserId,
-        p_amount: amountValue,
-        p_description: description,
-        p_payment_date: new Date().toISOString().split('T')[0]
-      });
+      const { error } = await supabase
+        .from('member_payments' as any)
+        .insert({
+          household_id: household.id,
+          from_user_id: user.id,
+          to_user_id: toUserId,
+          amount: amountValue,
+          description: description,
+          payment_date: new Date().toISOString().split('T')[0]
+        });
 
       if (error) throw error;
 
