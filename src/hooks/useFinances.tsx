@@ -169,22 +169,14 @@ export const useHousehold = () => {
     return { data, error };
   };
 
-useEffect(() => {
-  if (user && household) {
-    // Configura listener do Supabase para atualizações em tempo real
-    const channel = supabase
-      .channel('expenses_changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'expenses',
-        filter: `household_id=eq.${household.id}`
-      }, () => fetchExpenses())
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel) };
-  }
-}, [user?.id, household?.id]);  // Recria listener quando usuário ou household mudar
+  useEffect(() => {
+    if (user && household) {
+      fetchHousehold();
+    } else {
+      setHousehold(null);
+      setLoading(false);
+    }
+  }, [user?.id]);
 
   return {
     household,
@@ -231,7 +223,7 @@ export const useExpenses = (household: Household | null = null) => {
     if (error) {
       console.error("Error fetching expenses:", error);
     } else {
-      setExpenses(data || []);
+      setExpenses(data as any || []);
     }
     setLoading(false);
   };
@@ -268,15 +260,21 @@ export const useExpenses = (household: Household | null = null) => {
         })
         .select(`
           *,
-          categories (id, name),
-          profiles (name)
+          categories (
+            id,
+            name,
+            parent_category
+          ),
+          profiles!expenses_paid_by_fkey (
+            name
+          )
         `)
         .single();
 
       if (error) throw error;
     
       console.log("Despesa cadastrada com sucesso:", data);
-      setExpenses((prev) => [data, ...prev]);
+      setExpenses((prev) => [data as any, ...prev]);
       return { data };
 
     } catch (error) {

@@ -13,6 +13,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useCategories } from "@/hooks/useCategories";
 import { useExpenses, useHousehold } from "@/hooks/useFinances";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
 interface AddExpenseDialogProps {
@@ -31,15 +32,11 @@ const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
   const { categories } = useCategories();
   const { household } = useHousehold();
   const { addExpense } = useExpenses(household);
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    // ADICIONE AQUI ▼
-    console.log('Dados atuais:', {
-      user: user?.id,
-      household: household?.id 
-    });
+    setLoading(true);
 
     // Chamada original para addExpense
     const { error } = await addExpense(
