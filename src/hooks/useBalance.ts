@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { useExpenses, useHousehold } from './useFinances';
+import { useAuth } from './useAuth';
 
 export const useBalance = () => {
+  const { user } = useAuth();
   const { household } = useHousehold();
   const { expenses } = useExpenses(household);
 
@@ -53,7 +55,7 @@ export const useBalance = () => {
     });
 
     return { brunoOwesJulia, juliaOwesBruno };
-  }, [household, expenses]);
+  }, [household, expenses, user?.id]);
 
   return balance;
 };

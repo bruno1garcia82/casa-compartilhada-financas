@@ -212,9 +212,6 @@ export const useExpenses = (household: Household | null = null) => {
           id,
           name,
           parent_category
-        ),
-        profiles!expenses_paid_by_fkey (
-          name
         )
       `)
       .eq("household_id", household.id)
@@ -223,7 +220,17 @@ export const useExpenses = (household: Household | null = null) => {
     if (error) {
       console.error("Error fetching expenses:", error);
     } else {
-      setExpenses(data as any || []);
+      // Buscar profiles separadamente para obter nomes dos usuários
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, name");
+
+      const expensesWithProfiles = (data || []).map(expense => ({
+        ...expense,
+        profiles: profilesData?.find(p => p.user_id === expense.paid_by) || null
+      }));
+      
+      setExpenses(expensesWithProfiles as any || []);
     }
     setLoading(false);
   };
@@ -264,18 +271,27 @@ export const useExpenses = (household: Household | null = null) => {
             id,
             name,
             parent_category
-          ),
-          profiles!expenses_paid_by_fkey (
-            name
           )
         `)
         .single();
 
       if (error) throw error;
     
-      console.log("Despesa cadastrada com sucesso:", data);
-      setExpenses((prev) => [data as any, ...prev]);
-      return { data };
+      // Buscar o nome do usuário que criou a despesa
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", user.id)
+        .single();
+
+      const expenseWithProfile = {
+        ...data,
+        profiles: profileData || { name: "Usuário" }
+      };
+      
+      console.log("Despesa cadastrada com sucesso:", expenseWithProfile);
+      setExpenses((prev) => [expenseWithProfile as any, ...prev]);
+      return { data: expenseWithProfile };
 
     } catch (error) {
       console.error("Erro detalhado ao cadastrar:", error);
@@ -310,16 +326,25 @@ export const useExpenses = (household: Household | null = null) => {
           id,
           name,
           parent_category
-        ),
-        profiles!expenses_paid_by_fkey (
-          name
         )
       `)
       .single();
 
     if (!error && data) {
+      // Buscar o nome do usuário que criou a despesa
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", user.id)
+        .single();
+
+      const expenseWithProfile = {
+        ...data,
+        profiles: profileData || { name: "Usuário" }
+      };
+
       setExpenses((prev) =>
-        prev.map((expense) => (expense.id === id ? data as any : expense))
+        prev.map((expense) => (expense.id === id ? expenseWithProfile as any : expense))
       );
       // Trigger a refetch to ensure balance updates
       setTimeout(() => fetchExpenses(), 100);
