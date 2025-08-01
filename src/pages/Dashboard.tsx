@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -35,12 +35,40 @@ const Dashboard = () => {
     }
   }, [user, loading, navigate]);
 
-  // Force refresh when expenses change
-  useEffect(() => {
-    if (expenses.length > 0) {
-      setUserKey(prev => prev + "_" + expenses.length);
-    }
-  }, [expenses.length]);
+  // Memoize calculations to prevent unnecessary re-renders
+  const dashboardData = useMemo(() => {
+    const currentMonth = new Date();
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    
+    const monthlyExpenses = expenses.filter(expense => {
+      const expenseDate = new Date(expense.expense_date);
+      return expenseDate >= monthStart && expenseDate <= monthEnd;
+    });
+
+    // Separate shared and personal expenses
+    const sharedExpenses = monthlyExpenses.filter(expense => expense.is_shared);
+    const personalExpenses = monthlyExpenses.filter(expense => !expense.is_shared);
+
+    const totalSharedAmount = sharedExpenses.reduce(
+      (sum, expense) => sum + expense.amount,
+      0
+    );
+
+    const totalPersonalAmount = personalExpenses.reduce(
+      (sum, expense) => sum + expense.amount,
+      0
+    );
+
+    return {
+      monthlyExpenses,
+      sharedExpenses,
+      personalExpenses,
+      totalSharedAmount,
+      totalPersonalAmount,
+      totalMonthly: totalSharedAmount + totalPersonalAmount
+    };
+  }, [expenses]);
 
   const handleSignOut = async () => {
     try {
@@ -80,32 +108,6 @@ const Dashboard = () => {
   if (!user) {
     return null;
   }
-
-  // Calculate monthly totals
-  const currentMonth = new Date();
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  
-  const monthlyExpenses = expenses.filter(expense => {
-    const expenseDate = new Date(expense.expense_date);
-    return expenseDate >= monthStart && expenseDate <= monthEnd;
-  });
-
-  // Separate shared and personal expenses
-  const sharedExpenses = monthlyExpenses.filter(expense => expense.is_shared);
-  const personalExpenses = monthlyExpenses.filter(expense => !expense.is_shared);
-
-  const totalSharedAmount = sharedExpenses.reduce(
-    (sum, expense) => sum + expense.amount,
-    0
-  );
-
-  const totalPersonalAmount = personalExpenses.reduce(
-    (sum, expense) => sum + expense.amount,
-    0
-  );
-
-  const totalMonthlyAmount = totalSharedAmount + totalPersonalAmount;
 
   const getCategoryName = (categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
@@ -160,9 +162,9 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalMonthlyAmount)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(dashboardData.totalMonthly)}</div>
               <p className="text-xs text-muted-foreground">
-                {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+                {format(new Date(), "MMMM yyyy", { locale: ptBR })}
               </p>
             </CardContent>
           </Card>
@@ -173,10 +175,10 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{formatCurrency(totalSharedAmount)}</div>
+              <div className="text-2xl font-bold text-blue-600">{formatCurrency(dashboardData.totalSharedAmount)}</div>
               <div className="text-xs text-muted-foreground mt-1">
-                <div>Julia: {formatCurrency(totalSharedAmount * (household?.julia_percentage || 0) / 100)}</div>
-                <div>Bruno: {formatCurrency(totalSharedAmount * (household?.bruno_percentage || 0) / 100)}</div>
+                <div>Julia: {formatCurrency(dashboardData.totalSharedAmount * (household?.julia_percentage || 0) / 100)}</div>
+                <div>Bruno: {formatCurrency(dashboardData.totalSharedAmount * (household?.bruno_percentage || 0) / 100)}</div>
               </div>
             </CardContent>
           </Card>
@@ -187,7 +189,7 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{formatCurrency(totalPersonalAmount)}</div>
+              <div className="text-2xl font-bold text-orange-600">{formatCurrency(dashboardData.totalPersonalAmount)}</div>
               <p className="text-xs text-muted-foreground">
                 não divididas
               </p>
@@ -200,9 +202,9 @@ const Dashboard = () => {
               <List className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{monthlyExpenses.length}</div>
+              <div className="text-2xl font-bold">{dashboardData.monthlyExpenses.length}</div>
               <p className="text-xs text-muted-foreground">
-                {sharedExpenses.length} conjuntas, {personalExpenses.length} pessoais
+                {dashboardData.sharedExpenses.length} conjuntas, {dashboardData.personalExpenses.length} pessoais
               </p>
             </CardContent>
           </Card>

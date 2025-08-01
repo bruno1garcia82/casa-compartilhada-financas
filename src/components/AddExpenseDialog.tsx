@@ -66,12 +66,6 @@ const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
       setDate(new Date());
       setIsShared("shared");
       onOpenChange(false);
-      
-      // Force a small delay to ensure the expense is added to the list
-      setTimeout(() => {
-        // Trigger a page refresh to update all calculations
-        window.location.reload();
-      }, 500);
     }
     setLoading(false);
   };
