@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOut } from "@/lib/auth";
 import { useHousehold, useExpenses } from "@/hooks/useFinances";
 import { useCategories } from "@/hooks/useCategories";
 import AddExpenseDialog from "@/components/AddExpenseDialog";
 import EditExpenseDialog from "@/components/EditExpenseDialog";
 import BalanceCard from "@/components/BalanceCard";
+import PaymentDialog from "@/components/PaymentDialog";
 import { toast } from "@/hooks/use-toast";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Settings, List, TrendingUp } from "lucide-react";
+import { Plus, Settings, List, TrendingUp, ChevronLeft, ChevronRight, CreditCard } from "lucide-react";
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
