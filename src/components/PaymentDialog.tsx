@@ -14,9 +14,10 @@ interface PaymentDialogProps {
   onOpenChange: (open: boolean) => void;
   toUserId?: string;
   amount?: number;
+  onPaymentSuccess?: () => void;
 }
 
-const PaymentDialog = ({ open, onOpenChange, toUserId, amount }: PaymentDialogProps) => {
+const PaymentDialog = ({ open, onOpenChange, toUserId, amount, onPaymentSuccess }: PaymentDialogProps) => {
   const { user } = useAuth();
   const { household } = useHousehold();
   const [paymentAmount, setPaymentAmount] = useState(amount ? amount.toString() : "");
@@ -69,6 +70,10 @@ const PaymentDialog = ({ open, onOpenChange, toUserId, amount }: PaymentDialogPr
       onOpenChange(false);
       setPaymentAmount("");
       setDescription("Acerto de contas");
+      
+      if (onPaymentSuccess) {
+        onPaymentSuccess();
+      }
     } catch (error: any) {
       console.error("Erro ao registrar pagamento:", error);
       toast({

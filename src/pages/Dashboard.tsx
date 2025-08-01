@@ -14,7 +14,8 @@ import EditExpenseDialog from "@/components/EditExpenseDialog";
 import BalanceCard from "@/components/BalanceCard";
 import PaymentDialog from "@/components/PaymentDialog";
 import { toast } from "@/hooks/use-toast";
-import { format, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
+import { usePayments } from "@/hooks/usePayments";
+import { format, startOfMonth, endOfMonth, addMonths, subMonths, isSameMonth, isSameYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Plus, Settings, List, TrendingUp, ChevronLeft, ChevronRight, CreditCard } from "lucide-react";
 
@@ -24,8 +25,13 @@ const Dashboard = () => {
   const { household } = useHousehold();
   const { expenses } = useExpenses(household);
   const { categories } = useCategories();
+  const { payments } = usePayments(household?.id);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [paymentToUser, setPaymentToUser] = useState<string>('');
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [userKey, setUserKey] = useState('');
 
   useEffect(() => {
@@ -39,18 +45,23 @@ const Dashboard = () => {
 
   // Memoize calculations to prevent unnecessary re-renders
   const dashboardData = useMemo(() => {
-    const currentMonth = new Date();
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
     
+    // Filter expenses for the selected month
     const monthlyExpenses = expenses.filter(expense => {
       const expenseDate = new Date(expense.expense_date + 'T12:00:00');
       return expenseDate >= monthStart && expenseDate <= monthEnd;
     });
 
-    // Separate shared and personal expenses
-    const sharedExpenses = monthlyExpenses.filter(expense => expense.is_shared);
-    const personalExpenses = monthlyExpenses.filter(expense => !expense.is_shared);
+    // Filter for current user: shared expenses + personal expenses of the logged user
+    const userExpenses = monthlyExpenses.filter(expense => 
+      expense.is_shared || expense.paid_by === user?.id
+    );
+
+    // Separate shared and personal expenses (filtered)
+    const sharedExpenses = userExpenses.filter(expense => expense.is_shared);
+    const personalExpenses = userExpenses.filter(expense => !expense.is_shared && expense.paid_by === user?.id);
 
     const totalSharedAmount = sharedExpenses.reduce(
       (sum, expense) => sum + expense.amount,
@@ -63,14 +74,15 @@ const Dashboard = () => {
     );
 
     return {
-      monthlyExpenses,
+      monthlyExpenses: userExpenses,
       sharedExpenses,
       personalExpenses,
       totalSharedAmount,
       totalPersonalAmount,
-      totalMonthly: totalSharedAmount + totalPersonalAmount
+      totalMonthly: totalSharedAmount + totalPersonalAmount,
+      allMonthlyExpenses: monthlyExpenses // Keep all expenses for display
     };
-  }, [expenses, expenses.length]);
+  }, [expenses, currentMonth, user?.id]);
 
   const handleSignOut = async () => {
     try {
@@ -123,6 +135,20 @@ const Dashboard = () => {
     }).format(amount);
   };
 
+  const handlePayment = (toUserId: string, amount: number) => {
+    setPaymentToUser(toUserId);
+    setPaymentAmount(amount);
+    setShowPaymentDialog(true);
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth(prev => 
+      direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1)
+    );
+  };
+
+  const isCurrentMonth = isSameMonth(currentMonth, new Date()) && isSameYear(currentMonth, new Date());
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
@@ -156,6 +182,42 @@ const Dashboard = () => {
           </Button>
         </div>
 
+        {/* Month Navigation */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateMonth('prev')}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </Button>
+              
+              <div className="text-center">
+                <h2 className="text-lg font-semibold">
+                  {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+                </h2>
+                {isCurrentMonth && (
+                  <p className="text-sm text-muted-foreground">Mês atual</p>
+                )}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigateMonth('next')}
+                className="flex items-center gap-2"
+              >
+                Próximo
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -166,7 +228,7 @@ const Dashboard = () => {
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(dashboardData.totalMonthly)}</div>
               <p className="text-xs text-muted-foreground">
-                {format(new Date(), "MMMM yyyy", { locale: ptBR })}
+                {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
               </p>
             </CardContent>
           </Card>
@@ -233,7 +295,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <BalanceCard key={userKey} />
+          <BalanceCard key={userKey} onPayment={handlePayment} />
         </div>
 
         {/* Recent Expenses */}
@@ -245,14 +307,14 @@ const Dashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {expenses.length === 0 ? (
+            {dashboardData.allMonthlyExpenses.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
-                <p>Nenhuma despesa registrada ainda.</p>
+                <p>Nenhuma despesa registrada para este mês.</p>
                 <Button 
                   onClick={() => setShowAddExpense(true)} 
                   className="mt-4"
                 >
-                  Adicionar primeira despesa
+                  Adicionar despesa
                 </Button>
               </div>
             ) : (
@@ -268,7 +330,7 @@ const Dashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {expenses.slice(0, 10).map((expense) => (
+                  {dashboardData.allMonthlyExpenses.slice(0, 10).map((expense) => (
                     <TableRow 
                       key={expense.id} 
                       className="cursor-pointer hover:bg-muted/50"
@@ -315,6 +377,17 @@ const Dashboard = () => {
           expense={editingExpense}
         />
       )}
+
+      <PaymentDialog
+        open={showPaymentDialog}
+        onOpenChange={setShowPaymentDialog}
+        toUserId={paymentToUser}
+        amount={paymentAmount}
+        onPaymentSuccess={() => {
+          // Force refresh of the user key to update BalanceCard
+          setUserKey(user?.id + Date.now());
+        }}
+      />
     </div>
   );
 };
