@@ -236,13 +236,14 @@ export const useExpenses = (household: Household | null = null) => {
 
       const expensesWithProfiles = (data || []).map(expense => {
         const profile = profilesData?.find(p => p.user_id === expense.paid_by);
+        console.log(`Despesa ${expense.description} - paid_by: ${expense.paid_by} - Profile encontrado:`, profile);
         return {
           ...expense,
-          profiles: profile || { name: "Usuário" }
+          profiles: profile ? { name: profile.name } : { name: "Usuário" }
         };
       });
       
-      console.log("Despesas com profiles:", expensesWithProfiles);
+      console.log("Despesas com profiles finais:", expensesWithProfiles);
       setExpenses(expensesWithProfiles as any || []);
     }
     setLoading(false);
