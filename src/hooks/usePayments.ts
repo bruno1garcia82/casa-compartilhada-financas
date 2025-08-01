@@ -28,7 +28,7 @@ export const usePayments = (householdId?: string) => {
     }
 
     try {
-      const { data, error } = await supabase.rpc('get_household_payments', {
+      const { data, error } = await (supabase as any).rpc('get_household_payments', {
         p_household_id: householdId
       });
 
@@ -36,7 +36,7 @@ export const usePayments = (householdId?: string) => {
         console.error("Erro ao buscar pagamentos:", error);
         setPayments([]);
       } else {
-        setPayments(data || []);
+        setPayments((data as MemberPayment[]) || []);
       }
     } catch (error) {
       console.error("Erro ao buscar pagamentos:", error);

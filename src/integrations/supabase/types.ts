@@ -216,6 +216,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_household_payments: {
+        Args: { p_household_id: string }
+        Returns: {
+          id: string
+          household_id: string
+          from_user_id: string
+          to_user_id: string
+          amount: number
+          description: string
+          payment_date: string
+          created_at: string
+          updated_at: string
+          from_name: string
+          to_name: string
+        }[]
+      }
       insert_member_payment: {
         Args: {
           p_household_id: string
