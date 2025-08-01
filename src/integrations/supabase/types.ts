@@ -151,6 +151,42 @@ export type Database = {
         }
         Relationships: []
       }
+      member_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          from_user_id: string
+          household_id: string
+          id: string
+          payment_date: string
+          to_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string
+          from_user_id: string
+          household_id: string
+          id?: string
+          payment_date?: string
+          to_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          from_user_id?: string
+          household_id?: string
+          id?: string
+          payment_date?: string
+          to_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -180,7 +216,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      insert_member_payment: {
+        Args: {
+          p_household_id: string
+          p_from_user_id: string
+          p_to_user_id: string
+          p_amount: number
+          p_description: string
+          p_payment_date: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
