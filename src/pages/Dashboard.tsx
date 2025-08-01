@@ -111,6 +111,24 @@ const Dashboard = () => {
     }
   };
 
+  const handlePayment = (toUserId: string, amount: number) => {
+    setPaymentToUser(toUserId);
+    setPaymentAmount(amount);
+    setShowPaymentDialog(true);
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth(prev => 
+      direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1)
+    );
+  };
+
+  const handleRefresh = () => {
+    setUserKey(user?.id + Date.now());
+  };
+
+  const isCurrentMonth = isSameMonth(currentMonth, new Date()) && isSameYear(currentMonth, new Date());
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -134,20 +152,6 @@ const Dashboard = () => {
       currency: "BRL",
     }).format(amount);
   };
-
-  const handlePayment = (toUserId: string, amount: number) => {
-    setPaymentToUser(toUserId);
-    setPaymentAmount(amount);
-    setShowPaymentDialog(true);
-  };
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentMonth(prev => 
-      direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1)
-    );
-  };
-
-  const isCurrentMonth = isSameMonth(currentMonth, new Date()) && isSameYear(currentMonth, new Date());
 
   return (
     <div className="min-h-screen bg-background">
@@ -368,6 +372,7 @@ const Dashboard = () => {
       <AddExpenseDialog
         open={showAddExpense}
         onOpenChange={setShowAddExpense}
+        onExpenseAdded={handleRefresh}
       />
       
       {editingExpense && (
@@ -375,6 +380,7 @@ const Dashboard = () => {
           open={!!editingExpense}
           onOpenChange={(open) => !open && setEditingExpense(null)}
           expense={editingExpense}
+          onExpenseUpdated={handleRefresh}
         />
       )}
 
@@ -383,10 +389,7 @@ const Dashboard = () => {
         onOpenChange={setShowPaymentDialog}
         toUserId={paymentToUser}
         amount={paymentAmount}
-        onPaymentSuccess={() => {
-          // Force refresh of the user key to update BalanceCard
-          setUserKey(user?.id + Date.now());
-        }}
+        onPaymentSuccess={handleRefresh}
       />
     </div>
   );

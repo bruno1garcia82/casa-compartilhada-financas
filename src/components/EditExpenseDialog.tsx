@@ -28,9 +28,10 @@ interface EditExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   expense: any;
+  onExpenseUpdated?: () => void;
 }
 
-const EditExpenseDialog = ({ open, onOpenChange, expense }: EditExpenseDialogProps) => {
+const EditExpenseDialog = ({ open, onOpenChange, expense, onExpenseUpdated }: EditExpenseDialogProps) => {
   const { categories } = useCategories();
   const { household } = useHousehold();
   const { updateExpense, deleteExpense } = useExpenses(household);
@@ -77,6 +78,11 @@ const EditExpenseDialog = ({ open, onOpenChange, expense }: EditExpenseDialogPro
         description: "A despesa foi atualizada com sucesso.",
       });
       onOpenChange(false);
+      
+      // Call refresh callback if provided
+      if (onExpenseUpdated) {
+        onExpenseUpdated();
+      }
     }
     setIsLoading(false);
   };
@@ -99,6 +105,11 @@ const EditExpenseDialog = ({ open, onOpenChange, expense }: EditExpenseDialogPro
         description: "A despesa foi excluída com sucesso.",
       });
       onOpenChange(false);
+      
+      // Call refresh callback if provided
+      if (onExpenseUpdated) {
+        onExpenseUpdated();
+      }
     }
     setIsLoading(false);
   };

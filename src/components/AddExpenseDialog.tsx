@@ -19,9 +19,10 @@ import { toast } from "@/hooks/use-toast";
 interface AddExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onExpenseAdded?: () => void;
 }
 
-const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
+const AddExpenseDialog = ({ open, onOpenChange, onExpenseAdded }: AddExpenseDialogProps) => {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -68,6 +69,11 @@ const AddExpenseDialog = ({ open, onOpenChange }: AddExpenseDialogProps) => {
       setDate(new Date());
       setIsShared("shared");
       onOpenChange(false);
+      
+      // Call refresh callback if provided
+      if (onExpenseAdded) {
+        onExpenseAdded();
+      }
     }
     setLoading(false);
   };

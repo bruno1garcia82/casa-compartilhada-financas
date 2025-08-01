@@ -385,6 +385,29 @@ export const useExpenses = (household: Household | null = null) => {
     console.log("useExpenses useEffect - user:", user?.id, "household:", household?.id);
     if (user && household) {
       fetchExpenses();
+      
+      // Set up realtime subscription for expenses
+      const channel = supabase
+        .channel('expenses-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'expenses',
+            filter: `household_id=eq.${household.id}`
+          },
+          (payload) => {
+            console.log('Realtime expense change:', payload);
+            // Refetch expenses when there's any change
+            fetchExpenses();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     } else {
       // Clear expenses when user changes or household is not available
       console.log("Limpando expenses - sem usuário ou household");

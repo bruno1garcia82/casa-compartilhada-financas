@@ -74,7 +74,35 @@ export const usePayments = (householdId?: string) => {
   };
 
   useEffect(() => {
-    fetchPayments();
+    if (user && householdId) {
+      fetchPayments();
+      
+      // Set up realtime subscription for payments
+      const channel = supabase
+        .channel('payments-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'member_payments',
+            filter: `household_id=eq.${householdId}`
+          },
+          (payload) => {
+            console.log('Realtime payment change:', payload);
+            // Refetch payments when there's any change
+            fetchPayments();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      setPayments([]);
+      setLoading(false);
+    }
   }, [user, householdId]);
 
   return {
