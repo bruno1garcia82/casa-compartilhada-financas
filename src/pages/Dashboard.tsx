@@ -35,6 +35,13 @@ const Dashboard = () => {
     }
   }, [user, loading, navigate]);
 
+  // Force refresh when expenses change
+  useEffect(() => {
+    if (expenses.length > 0) {
+      setUserKey(prev => prev + "_" + expenses.length);
+    }
+  }, [expenses.length]);
+
   const handleSignOut = async () => {
     try {
       // Forçar limpeza do estado local primeiro
