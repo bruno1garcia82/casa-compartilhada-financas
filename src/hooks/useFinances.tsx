@@ -221,8 +221,6 @@ export const useExpenses = (household: Household | null = null) => {
       console.error("Error fetching expenses:", error);
       setExpenses([]);
     } else {
-      console.log("Despesas brutas:", data);
-      
       // Buscar profiles separadamente para obter nomes dos usuários
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
@@ -232,18 +230,14 @@ export const useExpenses = (household: Household | null = null) => {
         console.error("Error fetching profiles:", profilesError);
       }
 
-      console.log("Profiles encontrados:", profilesData);
-
       const expensesWithProfiles = (data || []).map(expense => {
         const profile = profilesData?.find(p => p.user_id === expense.paid_by);
-        console.log(`Despesa ${expense.description} - paid_by: ${expense.paid_by} - Profile encontrado:`, profile);
         return {
           ...expense,
           profiles: profile ? { name: profile.name } : { name: "Usuário" }
         };
       });
       
-      console.log("Despesas com profiles finais:", expensesWithProfiles);
       setExpenses(expensesWithProfiles as any || []);
     }
     setLoading(false);
