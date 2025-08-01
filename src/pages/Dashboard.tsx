@@ -36,17 +36,27 @@ const Dashboard = () => {
   }, [user, loading, navigate]);
 
   const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        title: "Erro ao sair",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+    try {
+      // Forçar limpeza do estado local primeiro
+      setUserKey("");
+      
+      const { error } = await signOut();
+      if (error) {
+        console.warn("Warning during logout:", error);
+      }
+      
+      // Sempre navegar para auth independente do erro
       toast({
         title: "Logout realizado",
         description: "Você foi desconectado com sucesso.",
+      });
+      navigate("/auth");
+    } catch (error: any) {
+      console.warn("Error during logout:", error);
+      // Mesmo com erro, navegar para auth
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado.",
       });
       navigate("/auth");
     }

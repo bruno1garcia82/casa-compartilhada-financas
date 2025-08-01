@@ -219,17 +219,27 @@ export const useExpenses = (household: Household | null = null) => {
 
     if (error) {
       console.error("Error fetching expenses:", error);
+      setExpenses([]);
     } else {
+      console.log("Despesas brutas:", data);
+      
       // Buscar profiles separadamente para obter nomes dos usuários
-      const { data: profilesData } = await supabase
+      const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select("user_id, name");
 
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+      }
+
+      console.log("Profiles encontrados:", profilesData);
+
       const expensesWithProfiles = (data || []).map(expense => ({
         ...expense,
-        profiles: profilesData?.find(p => p.user_id === expense.paid_by) || null
+        profiles: profilesData?.find(p => p.user_id === expense.paid_by) || { name: "Usuário" }
       }));
       
+      console.log("Despesas com profiles:", expensesWithProfiles);
       setExpenses(expensesWithProfiles as any || []);
     }
     setLoading(false);
@@ -372,14 +382,16 @@ export const useExpenses = (household: Household | null = null) => {
   };
 
   useEffect(() => {
+    console.log("useExpenses useEffect - user:", user?.id, "household:", household?.id);
     if (user && household) {
       fetchExpenses();
     } else {
       // Clear expenses when user changes or household is not available
+      console.log("Limpando expenses - sem usuário ou household");
       setExpenses([]);
       setLoading(false);
     }
-  }, [user, household]);
+  }, [user?.id, household?.id]);
 
   return {
     expenses,
