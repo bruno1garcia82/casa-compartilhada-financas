@@ -235,13 +235,7 @@ export const useExpenses = (household: Household | null = null) => {
       console.log("Profiles encontrados:", profilesData);
 
       const expensesWithProfiles = (data || []).map(expense => {
-        console.log("Procurando profile para paid_by:", expense.paid_by);
-        const profile = profilesData?.find(p => {
-          console.log("Comparando:", p.user_id, "===", expense.paid_by);
-          return p.user_id === expense.paid_by;
-        });
-        console.log("Profile encontrado:", profile);
-        
+        const profile = profilesData?.find(p => p.user_id === expense.paid_by);
         return {
           ...expense,
           profiles: profile || { name: "Usuário" }
