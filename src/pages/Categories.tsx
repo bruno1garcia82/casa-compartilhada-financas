@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit, Plus } from "lucide-react";
+import { Trash2, Edit, Plus, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
 const Categories = () => {
+  const navigate = useNavigate();
   const { categories, loading, addCategory, updateCategory, deleteCategory } = useCategories();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -116,11 +118,22 @@ const Categories = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Categorias</h1>
-          <p className="text-muted-foreground">
-            Gerencie as categorias de gastos do sistema
-          </p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Categorias</h1>
+            <p className="text-muted-foreground">
+              Gerencie as categorias de gastos do sistema
+            </p>
+          </div>
         </div>
         
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
