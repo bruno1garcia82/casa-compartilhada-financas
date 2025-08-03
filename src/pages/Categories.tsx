@@ -76,10 +76,10 @@ const Categories = () => {
   };
 
   const handleDeleteCategory = async (category: Category) => {
-    if (category.is_default) {
+    if (category.is_default && !category.parent_category) {
       toast({
-        title: "Categoria padrão",
-        description: "Categorias padrão não podem ser excluídas.",
+        title: "Categoria principal padrão",
+        description: "Categorias principais padrão não podem ser excluídas.",
         variant: "destructive",
       });
       return;
@@ -214,7 +214,6 @@ const Categories = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => openEditDialog(parent)}
-                    disabled={parent.is_default}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -246,7 +245,6 @@ const Categories = () => {
                           size="sm"
                           className="h-6 w-6 p-0"
                           onClick={() => openEditDialog(sub)}
-                          disabled={sub.is_default}
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
@@ -255,7 +253,6 @@ const Categories = () => {
                           size="sm"
                           className="h-6 w-6 p-0"
                           onClick={() => handleDeleteCategory(sub)}
-                          disabled={sub.is_default}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>

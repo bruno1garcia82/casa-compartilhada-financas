@@ -77,11 +77,16 @@ export const useCategories = () => {
   const deleteCategory = async (id: string) => {
     if (!user) return { error: "User not authenticated" };
 
+    // Check if it's a default parent category before deletion
+    const category = categories.find(cat => cat.id === id);
+    if (category?.is_default && !category.parent_category) {
+      return { error: "Categorias principais padrão não podem ser excluídas" };
+    }
+
     const { error } = await supabase
       .from("categories")
       .delete()
-      .eq("id", id)
-      .eq("is_default", false); // Only allow deletion of non-default categories
+      .eq("id", id);
 
     if (!error) {
       setCategories((prev) => prev.filter((cat) => cat.id !== id));
