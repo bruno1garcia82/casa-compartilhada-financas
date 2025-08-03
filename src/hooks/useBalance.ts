@@ -64,6 +64,14 @@ export const useBalance = () => {
       }
     });
 
+    // Arredondar para evitar problemas com centavos
+    brunoOwesJulia = Math.round(brunoOwesJulia * 100) / 100;
+    juliaOwesBruno = Math.round(juliaOwesBruno * 100) / 100;
+
+    // Considerar valores menores que 1 centavo como zero
+    if (brunoOwesJulia < 0.01) brunoOwesJulia = 0;
+    if (juliaOwesBruno < 0.01) juliaOwesBruno = 0;
+
     console.log("useBalance - resultado:", {
       brunoTotal,
       juliaTotal,
