@@ -36,7 +36,7 @@ const BalanceCard = ({ onPayment }: BalanceCardProps) => {
       };
     } else if (balance.brunoOwesJulia === 0 && balance.juliaOwesBruno === 0) {
       return {
-        message: "Contas em dia! Ninguém deve nada.",
+        message: "Ninguém deve ninguém - Contas em dia!",
         variant: "default" as const,
         icon: "✓"
       };
